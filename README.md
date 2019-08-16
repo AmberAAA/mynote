@@ -7,5 +7,6 @@
     2. [变量的解构赋值](./es6/chapter2.md)
     3. [字符串的扩展与新增方法](./es6/chapter3.md)
     4. [正则表达式](./es6/chapter4.md)
+    5. [数值的扩展](./es6/chapter5.md)
 * 核心参考
   * [LaTex指南](https://blog.csdn.net/zryxh1/article/details/53161011)
