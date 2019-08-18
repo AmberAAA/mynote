@@ -107,8 +107,8 @@ Object.getOwnPropertyDescriptor(obj,  'amber')
 |:--| :----: |:--:|:--| ---  |
 `for...in`| √ | √ | ×
 `Object.keys(obj)`| √ | × | ×
-`Object.getOwenPropertyNames(obj)`| × | × | √
-`Object.getOwnPropertySymbols(obj)`| - | × | √ | 只遍历自身的Symbol属性
+`Object.getOwenPropertyNames(obj)`| × | × | ×
+`Object.getOwnPropertySymbols(obj)`| × | × | √ | 只遍历自身的Symbol属性
 `Reflect.ownKeys(obj)` | ×  | √ | √ |
 
 以上的 5 种方法遍历对象的键名，都遵守同样的属性遍历的次序规则。
