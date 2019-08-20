@@ -13,5 +13,7 @@
     8. [对象扩展](./es6/chapter8.md)
     9. [Symbol类型](./es6/chapter9.md)
     10. [Set和Map数据结构](./es6/chapter10.md)
+    11. [Proxy、Reflect](./es6/chapter11.md)
+    12. [Promise](./es6/chapter12.md)
 * 核心参考
   * [LaTex指南](https://blog.csdn.net/zryxh1/article/details/53161011)
