@@ -15,5 +15,6 @@
     10. [Set和Map数据结构](./es6/chapter10.md)
     11. [Proxy、Reflect](./es6/chapter11.md)
     12. [Promise](./es6/chapter12.md)
+    13. [Iterator 和 for...of循环](./es6/chapter13.md)
 * 核心参考
   * [LaTex指南](https://blog.csdn.net/zryxh1/article/details/53161011)
