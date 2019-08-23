@@ -16,5 +16,7 @@
     11. [Proxy、Reflect](./es6/chapter11.md)
     12. [Promise](./es6/chapter12.md)
     13. [Iterator 和 for...of循环](./es6/chapter13.md)
+    14. [Generator 函数的语法](./es6/chapter14.md)
+    15. [Generator 函数的异步运用](./es6/chapter15.md)
 * 核心参考
   * [LaTex指南](https://blog.csdn.net/zryxh1/article/details/53161011)
