@@ -150,18 +150,8 @@ re.flags // 's'
 
 
 
-## 后行断言
+## 实例
 
-**TODO**
+1. 匹配文件扩展名
 
-## `Unicode`属性类
-
-**TODO**
-
-## 具m名组匹配
-
-**TODO**
-
-## `String.prototype.matchAll`
-
-**TODO**
+\(\.\w+)$\
