@@ -416,26 +416,521 @@ asd: 3004.310ms -> [ 2, 2, 2 ]
 ![](/source/debounceTime.png)
 
 ```js
+const { interval, Subject } = require("rxjs");
+const { debounceTime, take } = require("rxjs/operators");
 
+const clicks = new Subject() // 模拟一阵狂点鼠标
 
+// const clicks = fromEvent(document, 'click');
+const result = clicks.pipe(debounceTime(1000));
+result.subscribe(x => console.log(x));
+
+interval(3000).pipe(take(3)).subscribe(e => {
+    clicks.next(`我是可以输出的`)
+})
+
+interval(300).pipe(take(3)).subscribe(e => {
+    console.log("300ms %d", e)
+    clicks.next(`我输出不了了`)
+}, {}, () => {
+    console.log("300ms 关闭")
+})
+
+/*
+300ms 0
+300ms 1
+300ms 2
+300ms 关闭
+我输出不了了
+我是可以输出的
+我是可以输出的
+我是可以输出的
+*/
 ```
 ##### distinctUntilChanged
+
+> 返回 Observable，它发出源 Observable 发出的所有与前一项不相同的项。
+> 
+> 如果提供了 compare 函数，那么每一项都会调用它来检验是否应该发出这个值。
+>
+> 如果没有提供 compare 函数，默认使用相等检查。
+
+![](./source/distinctUntilChanged.png)
+
+```js
+const { of } = require("rxjs");
+const { distinctUntilChanged } = require("rxjs/operators");
+
+of(1,2,3,3,3,4,5,6,6,7)
+    .pipe(distinctUntilChanged())
+    .subscribe(console.log)
+
+const cat1 = { name: 'tom' };
+const cat2 = { name: 'tom' };
+const cat3 = { name: 'kity' };
+const cat4 = { name: 'jobs' };
+
+console.log(`.........`)
+
+of(cat1, cat2, cat3, cat4)
+    .pipe(distinctUntilChanged())
+    .subscribe(console.log)
+
+console.log(`.........`)
+
+
+of(cat1, cat2, cat3, cat4)
+    .pipe(distinctUntilChanged((x, y) => x.name === y.name))
+    .subscribe(console.log)
+
+/*
+   1
+   2
+   3
+   4
+   5
+   6
+   7
+  
+   { name: 'tom' }
+   { name: 'tom' }  // 可看出若不传比较函数，则内部通过===去判断
+   { name: 'kity' }
+   { name: 'jobs' }
+   .........
+   { name: 'tom' }
+   { name: 'kity' }
+   { name: 'jobs' }
+*/
+
+```
+
 ##### filter
+
+> 通过只发送源 Observable 的中满足指定 predicate 函数的项来进行过滤。
+> 类似于 Array.prototype.filter()， 它只会发出源 Observable 中符合标准函数的值。
+
+![](./s/../source/filter.png);
+
+```js
+const { interval } = require("rxjs");
+const { take, filter } = require("rxjs/operators");
+
+// 取10以内的偶数，每1s输出一个。
+interval(500)
+    .pipe(take(10), filter(i => i % 2 === 0))
+    .subscribe(console.log)
+
+/*
+   0
+   2
+   4
+   6
+   8
+*/
+```
+
 ##### take
+> 接收源 Observable 最初的N个值 (N = count)，然后完成。
+
+![](source/take.png)
+
+```js
+const { interval } = require("rxjs");
+const { take, filter } = require("rxjs/operators");
+
+// 取10以内的偶数，每1s输出一个。
+interval(500)
+    .pipe(take(10), filter(i => i % 2 === 0))
+    .subscribe(console.log)
+
+/*
+   0
+   2
+   4
+   6
+   8
+*/
+```
+
 ##### takeUntil
+> 发出源 Observable 发出的值，直到 notifier Observable 发出值。
+
+![](./source/takeUntil.png)
+```js
+const { interval, timer } = require("rxjs");
+const { takeUntil } = require("rxjs/operators");
+
+interval(500)
+    .pipe(takeUntil(timer(3000)))
+    .subscribe(console.log)
+
+/*
+
+   0
+   1
+   2
+   3
+   4
+
+*/
+
+```
+
 
 
 #### 转换
 ##### bufferTime
+> 将过往的值收集到数组中，并周期性地发出这些数组。
+
+![](source/bufferTime.png)
+
+```js
+
+const { interval } = require("rxjs");
+const { bufferTime, take } = require("rxjs/operators");
+
+interval(100)
+    .pipe(bufferTime(1000), take(3))
+    .subscribe(console.log)
+
+/*
+   [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]
+   [ 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ]
+   [ 19, 20, 21, 22, 23, 24, 25, 26, 27, 28 ]
+*/
+
+```
+
 ##### concatMap
+
+> 将源值投射为一个合并到输出 Observable 的 Observable,以串行的方式等待前一个完成再合并下一个 Observable。
+>
+> 将每个值映射为 Observable, 然后使用concatAll将所有的 内部 Observables 打平。
+
+![](./source/concatMap.png)
+
+```js
+const { interval } = require("rxjs");
+const { concatMap, take, map } = require("rxjs/operators");
+
+// interval(1000).pipe(concatMap(ev => interval(100).pipe(take(4)))).subscribe(console.log)
+
+interval(1000).pipe(
+    take(4),
+    concatMap(ev => {
+        console.log(`interval(1000)-${ev}: 触发`)
+        return interval(100).pipe(take(4), map(e => `${ev}-${e}`))
+    }),
+)
+.subscribe(console.log, null, () => demo2())
+
+// 可以从此DEMO中看出，若concatMap还没有执行完，则会阻塞外层的subjectable
+const demo2 = function() {
+    console.log('........更特殊的情况.............')
+    console.time("info")
+    interval(155).pipe(
+        take(4),
+        concatMap(ev => {
+            console.timeLog("info")
+            console.log(`interval(155)-${ev}: 触发`)
+            console.log('---------------')
+            return interval(100).pipe(take(4), map(e => `${ev}-${e}`))
+        }),
+    )
+    .subscribe(e => {
+        console.timeLog("info")
+        console.log(e)
+    })
+}
+
+/*
+   interval(1000)-0: 触发
+   0-0
+   0-1
+   0-2
+   0-3
+   interval(1000)-1: 触发
+   1-0
+   1-1
+   1-2
+   1-3
+   interval(1000)-2: 触发
+   2-0
+   2-1
+   2-2
+   2-3
+   interval(1000)-3: 触发
+   3-0
+   3-1
+   3-2
+   3-3
+   ........更特殊的情况.............
+   info: 154.869ms
+   interval(155)-0: 触发
+   ---------------
+   info: 258.611ms
+   0-0
+   info: 360.187ms
+   0-1
+   info: 459.892ms
+   0-2
+   info: 560.773ms
+   0-3
+   info: 562.727ms
+   interval(155)-1: 触发
+   ---------------
+   info: 672.342ms
+   1-0
+   info: 772.072ms
+   1-1
+   info: 872.817ms
+   1-2
+   info: 972.637ms
+   1-3
+   info: 974.512ms
+   interval(155)-2: 触发
+   ---------------
+   info: 1086.350ms
+   2-0
+   info: 1187.088ms
+   2-1
+   info: 1287.792ms
+   2-2
+   info: 1389.468ms
+   2-3
+   info: 1390.790ms
+   interval(155)-3: 触发
+   ---------------
+   info: 1501.169ms
+   3-0
+   info: 1600.971ms
+   3-1
+   info: 1701.550ms
+   3-2
+   info: 1802.296ms
+   3-3
+*/
+
+```
+
 ##### map
+
+> 将给定的 project 函数应用于源 Observable 发出的每个值，并将结果值作为 Observable 发出。
+
+![](./source/map.png)
+
+```js
+const { map, take } = require("rxjs/operators");
+const { interval } = require("rxjs");
+
+interval(500).pipe(map(i => i ** i ), take(10)).subscribe(console.log);
+/*
+   1
+   1
+   4
+   27
+   256
+   3125
+   46656
+   823543
+   16777216
+   387420489
+*/
+
+```
+
+
 ##### mergeMap
+> 将每个值映射成 Observable ，然后使用 mergeAll 打平所有的内部 Observables。
+>
+> 相比与concatMap, `MergeMap`打平了，没有阻塞。
+
+```js
+
+const { interval } = require("rxjs");
+const { mergeMap, take, map } = require("rxjs/operators");
+
+// 从concatMap中的例子直接copy出来，可以更清楚的看到他们之间的不同。
+const demo2 = function() {
+    console.log('........更特殊的情况.............')
+    console.time("info")
+    interval(155).pipe(
+        take(4),
+        // concatMap(ev => {
+        mergeMap(ev => {
+            console.timeLog("info")
+            console.log(`interval(155)-${ev}: 触发`)
+            console.log('---------------')
+            return interval(100).pipe(take(4), map(e => `${ev}-${e}`))
+        }),
+    )
+    .subscribe(e => {
+        console.timeLog("info")
+        console.log(e)
+    })
+}
+
+demo2()
+
+/*
+   ........更特殊的情况.............
+   info: 159.128ms
+   interval(155)-0: 触发
+   ---------------
+   info: 270.447ms
+   0-0
+   info: 315.049ms
+   interval(155)-1: 触发
+   ---------------
+   info: 370.971ms
+   0-1
+   info: 418.616ms
+   1-0
+   info: 470.485ms
+   interval(155)-2: 触发
+   ---------------
+   info: 472.738ms
+   0-2
+   info: 518.584ms
+   1-1
+   info: 573.440ms
+   2-0
+   info: 575.164ms
+   0-3
+   info: 619.424ms
+   1-2
+   info: 627.503ms
+   interval(155)-3: 触发
+   ---------------
+   info: 673.215ms
+   2-1
+   info: 719.125ms
+   1-3
+   info: 739.133ms
+   3-0
+   info: 776.531ms
+   2-2
+   info: 839.711ms
+   3-1
+   info: 876.537ms
+   2-3
+   info: 940.563ms
+   3-2
+   info: 1041.309ms
+   3-3
+*/
+
+```
+
+
+
 ##### scan
+> 对源 Observable 使用累加器函数， 返回生成的中间值， 可选的初始值。
+>
+> 就像是 reduce, 但是发出目前的累计数当源发出数据的时候。
+
+![](./source/scan.png)
+
+```js
+const { interval } = require("rxjs");
+const { scan, take } = require("rxjs/operators");
+
+interval(500).pipe(scan((acc, value) => acc + value, 0), take(5)).subscribe(console.log);
+
+/*
+   0
+   1
+   3
+   6
+   10
+*/
+```
+
+
 ##### switchMap
+
+> 相比于`concatMap`，`mergeMap`, 在使用`switchMao`时，源更新，之前的`switchMap`就已经丢弃。
+> 
+
+```js
+const { interval } = require("rxjs");
+const { switchMap, map, take } = require("rxjs/operators");
+
+interval(1000).pipe(switchMap(env => interval(env * 200 + 200).pipe(map(e => `interval1 -- ${env} -- ${e} `)))).subscribe(console.log);
+
+/*
+interval1 -- 0 -- 0
+interval1 -- 0 -- 1
+interval1 -- 0 -- 2
+interval1 -- 0 -- 3
+interval1 -- 1 -- 0
+interval1 -- 1 -- 1
+interval1 -- 2 -- 0
+interval1 -- 3 -- 0
+interval1 -- 4 -- 0
+//注意 程序并没有结束 因为还没有等到switchMap响应，就已经源就已经更新。
+*/
+```
 
 
 #### 工具
 ##### tap
+> 对`Observable`进行监听但不影响可观察对象。
+
+```js
+const { of } = require("rxjs")
+const { tap, map } = require("rxjs/operators");
+
+const User1 = { name: 'User1' };
+const User2 = { name: 'User2' };
+const User3 = { name: 'User3' };
+const User4 = { name: 'User4' }
+
+of(User1,User2,User3,User4)
+    .pipe(tap(console.log), map(e => e.name))
+    .subscribe(console.log)
+
+/*
+   { name: 'User1' }
+   User1
+   { name: 'User2' }
+   User2
+   { name: 'User3' }
+   User3
+   { name: 'User4' }
+   User4
+*/
+
+```
 
 #### 多播
 ##### share
+> 将一个可观察对象进行共享
+
+```js
+const { interval } = require("rxjs");
+const { share } = require("rxjs/operators");
+
+const i = interval(1000).pipe(share());
+
+const timer = (name) => i.subscribe(e => console.log(`${name} --- ${e}`));
+
+timer("amber");
+
+setTimeout(e => timer("bob"), 4345);
+
+/*
+   amber --- 0
+   amber --- 1
+   amber --- 2
+   amber --- 3
+   amber --- 4
+   bob --- 4
+   amber --- 5
+   bob --- 5
+   amber --- 6
+   bob --- 6
+   amber --- 7
+   bob --- 7
+*/
+```
