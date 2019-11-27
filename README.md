@@ -21,5 +21,10 @@
     16. [async 函数](./es6/chapter16.md)
 * 核心参考
   * [LaTex指南](https://blog.csdn.net/zryxh1/article/details/53161011)
+  * [SQL](SQL.md)
+* Angular
+  * [动画](./ng/animations.md)
+  * [路由](./ng/router.md)
+  <!-- * [GraphQL实践](./GraphQL.md) -->
 * 其他
   * [RXJS](rxjs.md) 
